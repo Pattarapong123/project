@@ -62,27 +62,18 @@ class _PaymentmngState extends State<Paymentmng> {
 
           setState(() {}); // รีเฟรช UI
 
-          // สร้างข้อมูลที่จะส่งไปยัง Firebase
-          var meterData = {
+          // ส่งข้อมูลไปยัง Firebase
+          await _addPayment({
+            // ส่งค่าดิบ
             'waterUsage': latestWater?.toString() ?? '0',  // ค่าดิบของการใช้น้ำ
             'energyUsage': latestEnergy?.toString() ?? '0',  // ค่าดิบของการใช้พลังงาน
-            'createdAt': FieldValue.serverTimestamp(), // เพิ่มวันที่และเวลา
-            'roomNumber': '101', // หรือหมายเลขห้องที่ต้องการ
-            'tenantID': 'tenant_id_example', // หรือ tenantID ที่ต้องการ
-          };
 
-          // ส่งข้อมูลไปยัง collection 'meter'
-          await _addMeterData(meterData);
-
-          // ส่งข้อมูลไปยัง collection 'Payments'
-          await _addPayment({
-            'waterUsage': latestWater?.toString() ?? '0',
-            'energyUsage': latestEnergy?.toString() ?? '0',
-            'waterCostInBaht': waterCostInBaht?.toStringAsFixed(2) ?? '0',
-            'electricityCostInBaht': electricityCostInBaht?.toStringAsFixed(2) ?? '0',
-            'totalAmount': totalAmount?.toStringAsFixed(2) ?? '0',
-            'amount': totalAmount?.toStringAsFixed(2) ?? '0',
-            'createdAt': FieldValue.serverTimestamp(),
+            // ส่งค่าคำนวณแล้ว
+            'waterCostInBaht': waterCostInBaht?.toStringAsFixed(2) ?? '0', // ค่าน้ำที่คำนวณแล้ว
+            'electricityCostInBaht': electricityCostInBaht?.toStringAsFixed(2) ?? '0', // ค่าไฟที่คำนวณแล้ว
+            'totalAmount': totalAmount?.toStringAsFixed(2) ?? '0',  // ส่งค่ารวม
+            'amount': totalAmount?.toStringAsFixed(2) ?? '0', // ค่ารวม
+            'createdAt': FieldValue.serverTimestamp(), // เพิ่มเวลาเข้าไปในข้อมูล
           });
         }
       } else {
@@ -106,16 +97,6 @@ class _PaymentmngState extends State<Paymentmng> {
   void dispose() {
     _timer.cancel();  // เมื่อ widget หายไป ให้หยุดการดึงข้อมูล
     super.dispose();
-  }
-
-  // ฟังก์ชันเพิ่มข้อมูลใน collection 'meter'
-  Future<void> _addMeterData(Map<String, dynamic> meterData) async {
-    try {
-      await FirebaseFirestore.instance.collection('meter').add(meterData);
-      print('เพิ่มข้อมูลใน collection meter สำเร็จ');
-    } catch (e) {
-      print('❌ Error adding data to meter collection: $e');
-    }
   }
 
   // ฟังก์ชันดึงข้อมูลจาก Firebase
@@ -258,7 +239,7 @@ class _PaymentmngState extends State<Paymentmng> {
                         'waterMultiplier': waterMultiplier.toString(), // เก็บตัวคูณค่าน้ำ
                         'electricityMultiplier': electricityMultiplier.toString(), // เก็บตัวคูณค่าไฟ
                         'billID': billID, // ใช้ billID ที่ดึงมา
-                        'createdAt': FieldValue.serverTimestamp(), // เพิ่มวันที่และเวลาเมื่อเพิ่มการชำระเงิน
+                        'createdAt': FieldValue.serverTimestamp(), // เพิ่มเวลาเข้าไปในข้อมูล
                       };
 
                       await _addPayment(paymentData);
